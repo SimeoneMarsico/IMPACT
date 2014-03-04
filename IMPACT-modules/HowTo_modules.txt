@@ -1,0 +1,42 @@
+IMPACT_modules
+
+
+Call from inside MATLAB: 
+
+
+IMPACT_modules (do_params, alg_params)
+
+
+where do_params = [par1 par2 par3 par4] and alg_params = [par5, par6, par7, par8] 
+
+
+===================================================================================
+
+###### Example call: IMPACT_modules ( [1 1 1 1], [0.7 2 5000 4] ) ######
+
+===================================================================================
+
+
+Short parameters description
+INPUT:
+
+do_params = [do_seed_nodes do_module_search do_randomizations do_statistics]
+
+par1: do_seed_nodes          = binary, [0,1], do the seed node finding
+par2: do_module_search   = binary, [0,1], do the search procedure on network
+par3: do_randomizations = binary, [0,1], do the randomizations
+par4: do_statistics               = binary, [0,1], calculate p-values and export results based on the randomization results
+
+alg_params = [SIMIL_THR MIN_NUMB_PROF N_RAND N_MAX]
+
+par5: SIMIL_THR = number, [0-1], similarity threshold (Pearson correlation coefficient) for search and randomizations
+par6: MIN_NUMB_PROF = number, if >= 1 it is the number of profiles above similarity threshold required for module search (e.g. 2); if < 1 it is the fraction of profiles above threshold.
+Par7: N_RAND = integer number, e.g. 1000, number of randomization for each set
+Par8: N_MAX = integer number, e.g. 4, number of bins on the number-of-profiles distribution for the randomizations
+
+OUTPUT: .mat and .txt files in the same folder as input files
+
+
+===================================================================================
+
+For extensive description see document "Documentation_source_code_IMPACT-modules.docx"
