@@ -7,7 +7,7 @@ Call from inside MATLAB:
 IMPACT_modules (do_params, alg_params)
 
 
-where do_params = [par1 par2 par3 par4] and alg_params = [par5, par6, par7, par8] 
+where do_params = [par1 par2 par3 par4] and alg_params = [par5, par6, par7, par8, par9] 
 
 
 ===================================================================================
