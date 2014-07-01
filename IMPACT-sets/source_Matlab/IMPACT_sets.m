@@ -1,7 +1,7 @@
 function IMPACT_sets
 % loaded input file parameters should look like:
 % do_seed_nodes,do_module_search,do_randomizations,do_statistics,SIMIL_THR,MIN_NUMB_PROF,N_RAND,N_MAX
-% e.g. 1,1,1,1,0.7,2,5000,4
+% e.g. 1,1,1,1,0,0.7,2,5000,4
 % where do_seed_nodes     = binary, [0,1], do the import (convert input text files into matlab environment files)
 %       do_module_search  = binary, [0,1], do the search procedure on sets
 %       do_randomizations = binary, [0,1], do the randomizations
