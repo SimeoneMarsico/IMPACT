@@ -1,38 +1,32 @@
-function IMPACT_sets(do_params, alg_params)
-% INPUT:
-% do_params = [do_import_mapping do_set_search do_randomizations do_statistics]
-% where do_import_mapping = binary, [0,1], do the seed node finding
-%       do_set_search = binary, [0,1], do the search procedure on network
+function IMPACT_sets
+% loaded input file parameters should look like:
+% do_seed_nodes,do_module_search,do_randomizations,do_statistics,SIMIL_THR,MIN_NUMB_PROF,N_RAND,N_MAX
+% e.g. 1,1,1,1,0.7,2,5000,4
+% where do_seed_nodes     = binary, [0,1], do the import (convert input text files into matlab environment files)
+%       do_module_search  = binary, [0,1], do the search procedure on sets
 %       do_randomizations = binary, [0,1], do the randomizations
-%       do_statistics = binary, [0,1], calculate p-values and export results based on the randomization results
-% alg_params = [SIMIL_THR MIN_NUMB_PROF N_RAND N_MAX]
-% where SIMIL_THR = number, [0-1], similarity threshold (Pearson correlation coefficient) for set search and randomizations
-%       MIN_NUMB_PROF = not used, kept only for compatibility with IMPACT-modules.m (IMPACT-modules); it must be passed to the function (it may be used in future implementations);
-%       N_RAND = integer number, e.g. 1000, number of randomization for each set
-%       N_MAX = integer number, e.g. 4, number of bins on the number-of-profiles distribution for the randomizations
+%       do_statistics     = binary, [0,1], calculate p-values and export results based on the randomization results
+%       simil_type        = binary, [0,1], type of similarity measure: if 0 is Pearson correlation coefficient, if 1 is inverse of Euclidean distance
+%       SIMIL_THR         = number, [0-1], similarity threshold (Pearson correlation coefficient) for set search and randomizations
+%       MIN_NUMB_PROF     = not used, kept only for compatibility with Pipeline_NetworkAnalysis.m (IMPACT-modules); it must be passed to the function (it may be used in future implementations);
+%       N_RAND            = integer number, e.g. 1000, number of randomization for each set
+%       N_MAX             = integer number, e.g. 4, number of bins on the number-of-profiles distribution for the randomizations
 %
 % OUTPUT: .mat and .txt files in the same folder as input files
-%
-% example call IMPACT_sets([1 1 1 1], [0.75 1 5000 4])
-%
-% by Giovanni Marsico and Angela Simeone 04/03/2014
-% redistributed under The MathWorks, Inc. Software License Agreement
-
 
 %% SETTING BASIC PARAMETER FOR ENVIRONMENT AND SEARCH
+[param_file param_file_path] = uigetfile('*.txt', 'Load paramters file','.');
+a = dlmread([param_file_path param_file]);
+do_import_mapping = a(1)
+do_set_search = a(2)
+do_randomizations = a(3)
+do_statistics = a(4)
+simil_type = a(5)
+SIMIL_THR = a(6)
+MIN_NUMB_PROF = a(7)
+N_RAND = a(8)
+N_MAX = a(9)
 
-% environment parameters
-do_import_mapping = do_params(1);
-do_set_search = do_params(2);
-do_randomizations = do_params(3);
-do_statistics = do_params(4);
-
-% algorithm parameters
-SIMIL_THR = alg_params(1);
-MIN_NUMB_PROF = alg_params(2);
-N_RAND = alg_params(3);
-N_MAX = alg_params(4);
-    
 [set_interaction_file my_path] = uigetfile('*.txt', 'Load set interaction data','.');
 set_interaction_file = [my_path set_interaction_file];
 [experimental_pheotypic_file my_path] = uigetfile('*.txt', 'Load phenotypic data',my_path);
@@ -71,7 +65,7 @@ if (do_set_search || do_randomizations || do_statistics)
 end
 %% Set-base analysis: search enriched pattern in complexes 
 if(do_set_search)
-    [Realselected,RealselectedPnotSwap,RealreferenceP,RealmatrixP,RealMaxNUmProf,RealNumGenesSelected,RealTotNumProf,RealSelGenesID,RealSelectedOligos]=searchComplexProfiles2(newComplexes,newComplexesID,newComplexesSymbol,SIMIL_THR);
+    [Realselected,RealselectedPnotSwap,RealreferenceP,RealmatrixP,RealMaxNUmProf,RealNumGenesSelected,RealTotNumProf,RealSelGenesID,RealSelectedOligos]=searchComplexProfiles2(newComplexes,newComplexesID,newComplexesSymbol,SIMIL_THR,simil_type);
     save (OutputSearchFile, 'Real*');
 else
     load(OutputSearchFile);
@@ -84,10 +78,16 @@ end
 if (do_randomizations)
     
     % all screens profiles
-    numProfilesPerGene_unique = zeros(1,length(allOligoProf));
-    for i=1:length(allOligoProf)
-        numProfilesPerGene_unique(i) = size(allOligoProf{i},1);
+    %numProfilesPerGene_unique = zeros(1,length(allOligoProf));
+    %for i=1:length(allOligoProf)
+    %    numProfilesPerGene_unique(i) = size(allOligoProf{i},1);
+    %end
+    
+    numProfilesPerGene_unique = zeros(1,length(allProteinSetUnique));
+    for i=1:length(allProteinSetUnique)
+        numProfilesPerGene_unique(i) = size(allProteinSetUnique{i},1);
     end
+    
     % creation of 
     % Bins : set of bins containing gene profiles according to their number of profiles 
     % vectRandTemp : total count of genes in each bin.
@@ -95,6 +95,9 @@ if (do_randomizations)
     temp = sort(numProfilesPerGene_unique);
     for i = 1: N_MAX
         N(i) = temp(i * floor(length(temp)   /(N_MAX+1)));
+    end
+    if(N_MAX == 1)
+        N = max(temp);
     end
     N = unique(N);
     N_MAX = min(N_MAX, length(N));
@@ -115,7 +118,7 @@ if (do_randomizations)
     BinnedSetinfo_PhenotypicDataFile = [my_path 'BinnedDatasetForRandomizations.mat'];
     save(BinnedSetinfo_PhenotypicDataFile, 'SetProfiles', 'Bins', 'vectRandTemp');
 
-    RunRandomizationWithBinningSet(BinnedSetinfo_PhenotypicDataFile,OutputRandFile,N_RAND,SIMIL_THR, N);
+    RunRandomizationWithBinningSet(BinnedSetinfo_PhenotypicDataFile,OutputRandFile,N_RAND,SIMIL_THR, N,Realselected,simil_type);
 
 end
 
